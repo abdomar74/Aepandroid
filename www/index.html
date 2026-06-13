@@ -1,0 +1,1910 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fiche Décisionnelle – AEP</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green-dark:   #1b4332;
+            --green-mid:    #2d6a4f;
+            --green-light:  #40916c;
+            --green-soft:   #d8f3dc;
+            --green-xsoft:  #f0faf2;
+            --red-dark:     #7f1d1d;
+            --red-mid:      #b91c1c;
+            --red-soft:     #fee2e2;
+            --amber:        #d97706;
+            --amber-soft:   #fef3c7;
+            --text:         #1a1a2e;
+            --text-muted:   #6b7280;
+            --border:       #d1d5db;
+            --white:        #ffffff;
+            --bg:           #f8faf9;
+            --shadow:       0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.05);
+            --radius:       10px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* ── PAGE WRAPPER ── */
+        .page {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 24px 64px;
+        }
+
+        /* ── HEADER ── */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: var(--green-dark);
+            color: white;
+            padding: 24px 32px;
+            border-radius: var(--radius);
+            margin-bottom: 28px;
+        }
+        .header img { height: 56px; width: auto; border-radius: 6px; }
+        .header-text h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -.3px;
+            line-height: 1.3;
+        }
+        .header-text p {
+            font-size: 12px;
+            opacity: .7;
+            margin-top: 3px;
+            font-weight: 300;
+        }
+
+        /* ── SECTION CARD ── */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+        .card-header .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .card-body { padding: 0; }
+
+        /* Couleurs par section */
+        .card--info    .card-header { background: var(--green-dark);  color: white; }
+        .card--info    .dot         { background: #74c69d; }
+        .card--tech    .card-header { background: var(--green-mid);   color: white; }
+        .card--tech    .dot         { background: #95d5b2; }
+        .card--opport  .card-header { background: var(--green-light); color: white; }
+        .card--opport  .dot         { background: #d8f3dc; }
+        .card--incendie .card-header { background: var(--red-mid);   color: white; }
+        .card--incendie .dot         { background: #fca5a5; }
+
+        /* ── INFOS GÉNÉRALES : grille 2 col ── */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+        .info-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 14px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            border-right: 1px solid #f0f0f0;
+        }
+        .info-field:nth-child(even) { border-right: none; }
+        .info-field label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+        .info-field input {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 7px 10px;
+            font-family: inherit;
+            font-size: 13px;
+            background: var(--white);
+            color: var(--text);
+            transition: border-color .15s;
+            width: 100%;
+        }
+        .info-field input:focus {
+            outline: none;
+            border-color: var(--green-light);
+            box-shadow: 0 0 0 3px rgba(64,145,108,.12);
+        }
+
+        /* ── CRITÈRES : tableau ── */
+        .criteria-table { width: 100%; border-collapse: collapse; }
+        .criteria-table thead tr {
+            background: #f9fafb;
+        }
+        .criteria-table thead th {
+            padding: 10px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+        }
+        .criteria-table thead th:not(:first-child) { text-align: center; }
+
+        .criteria-table tbody tr {
+            border-bottom: 1px solid #f3f4f6;
+            transition: background .1s;
+        }
+        .criteria-table tbody tr:hover { background: #fafffe; }
+        .criteria-table tbody tr:last-child { border-bottom: none; }
+
+        .criteria-table td {
+            padding: 10px 16px;
+            vertical-align: middle;
+        }
+        .criteria-table td:not(:first-child) { text-align: center; }
+
+        .criteria-table td:first-child {
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        /* badge coef */
+        .coef-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: 'DM Mono', monospace;
+        }
+        .card--tech    .coef-badge { background: #d8f3dc; color: var(--green-dark); }
+        .card--opport  .coef-badge { background: #d8f3dc; color: var(--green-dark); }
+        .card--incendie .coef-badge { background: var(--red-soft); color: var(--red-dark); }
+
+        /* valeur calculée */
+        .valeur {
+            font-family: 'DM Mono', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            height: 28px;
+            border-radius: 6px;
+            padding: 0 8px;
+        }
+        .card--tech    .valeur { background: var(--green-xsoft); color: var(--green-dark); }
+        .card--opport  .valeur { background: var(--green-xsoft); color: var(--green-dark); }
+        .card--incendie .valeur { background: var(--red-soft); color: var(--red-dark); }
+
+        /* select */
+        select {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px 28px 6px 10px;
+            font-family: inherit;
+            font-size: 13px;
+            background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;
+            -webkit-appearance: none;
+            appearance: none;
+            color: var(--text);
+            cursor: pointer;
+            transition: border-color .15s;
+            width: 100%;
+            max-width: 300px;
+        }
+        select:focus {
+            outline: none;
+            border-color: var(--green-light);
+            box-shadow: 0 0 0 3px rgba(64,145,108,.12);
+        }
+
+        /* ── LIGNE TOTAL ── */
+        .total-row td {
+            padding: 12px 16px !important;
+            font-weight: 700;
+            font-size: 13px;
+        }
+        .card--tech    .total-row { background: var(--green-soft); }
+        .card--opport  .total-row { background: var(--green-soft); }
+        .card--incendie .total-row { background: var(--red-soft); }
+
+        .total-val {
+            font-family: 'DM Mono', monospace;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .card--tech    .total-val { color: var(--green-dark); }
+        .card--opport  .total-val { color: var(--green-dark); }
+        .card--incendie .total-val { color: var(--red-dark); }
+
+        /* ── BILAN GÉNÉRAL ── */
+        .bilan {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr) 1.4fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .bilan-box {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .bilan-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-muted);
+        }
+        .bilan-val {
+            font-family: 'DM Mono', monospace;
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .bilan-box--tech    .bilan-val { color: var(--green-mid); }
+        .bilan-box--opport  .bilan-val { color: var(--green-light); }
+        .bilan-box--incendie .bilan-val { color: var(--red-mid); }
+
+        .bilan-box--total {
+            background: var(--green-dark);
+            color: white;
+        }
+        .bilan-box--total .bilan-label { color: rgba(255,255,255,.65); }
+        .bilan-box--total .bilan-val   { color: white; font-size: 32px; }
+
+        /* ── DÉCISION ── */
+        .decision-box {
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: var(--shadow);
+            transition: all .3s;
+        }
+        .decision-box.ok {
+            background: var(--green-soft);
+            border-left: 5px solid var(--green-mid);
+        }
+        .decision-box.ko {
+            background: var(--red-soft);
+            border-left: 5px solid var(--red-mid);
+        }
+        .decision-icon { font-size: 28px; line-height: 1; }
+        .decision-text strong {
+            font-size: 15px;
+            font-weight: 700;
+            display: block;
+        }
+        .decision-text span {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .decision-score {
+            margin-left: auto;
+            font-family: 'DM Mono', monospace;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        /* ── COMMENTAIRES ── */
+        .commentaire-zone {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .commentaire-zone label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        #commentaire {
+            width: 100%;
+            min-height: 80px;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            font-family: inherit;
+            font-size: 13px;
+            color: var(--text);
+            outline: none;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            transition: border-color .15s;
+        }
+        #commentaire:focus {
+            border-color: var(--green-light);
+            box-shadow: 0 0 0 3px rgba(64,145,108,.12);
+        }
+        #commentaire:empty::before {
+            content: attr(data-placeholder);
+            color: var(--text-muted);
+        }
+
+        /* ── BOUTONS ── */
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: nowrap;
+            align-items: center;
+        }
+        .btn-danger-right {
+            margin-left: auto;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 22px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .btn-primary {
+            background: var(--green-dark);
+            color: white;
+        }
+        .btn-primary:hover { background: var(--green-mid); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(27,67,50,.25); }
+
+        .btn-danger {
+            background: white;
+            color: var(--red-mid);
+            border: 1.5px solid var(--red-mid);
+        }
+        .btn-danger:hover { background: var(--red-soft); }
+
+        /* ── FOOTER ── */
+        .footer {
+            text-align: center;
+            margin-top: 32px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* ── BOUTONS CARTOGRAPHIQUES ── */
+        .btn-carto {
+            background: white;
+            color: #374151;
+            border: 1.5px solid var(--border);
+        }
+        .btn-carto:hover { background: #f3f4f6; border-color: #9ca3af; }
+        .btn-carto.active {
+            background: #1e3a5f;
+            color: white;
+            border-color: #1e3a5f;
+        }
+        .btn-carto-cadastre.active { background: #7c3aed; border-color: #7c3aed; }
+        .btn-carto-temps.active   { background: #b45309; border-color: #b45309; }
+
+        .actions-separator {
+            width: 1px;
+            height: 36px;
+            background: var(--border);
+            margin: 0 6px;
+            align-self: center;
+        }
+
+        /* ── PANNEAUX CARTOGRAPHIQUES ── */
+        .carto-panel {
+            display: none;
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            overflow: hidden;
+            animation: slideDown .2s ease;
+        }
+        .carto-panel.open { display: block; }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .carto-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+        .carto-panel-header .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .carto-panel-header-left { display: flex; align-items: center; gap: 10px; }
+        .carto-panel-close {
+            background: rgba(255,255,255,.2);
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 16px;
+            line-height: 1;
+            opacity: .8;
+            transition: opacity .15s;
+        }
+        .carto-panel-close:hover { opacity: 1; background: rgba(255,255,255,.35); }
+
+        .panel--sig .carto-panel-header   { background: #1e3a5f; color: white; }
+        .panel--sig .dot                  { background: #93c5fd; }
+        .panel--cadastre .carto-panel-header { background: #7c3aed; color: white; }
+        .panel--cadastre .dot                { background: #ddd6fe; }
+        .panel--temps .carto-panel-header { background: #b45309; color: white; }
+        .panel--temps .dot                { background: #fde68a; }
+
+        .carto-panel-body {
+            padding: 24px;
+        }
+
+        /* Zone de dépôt d'image */
+        .carto-dropzone {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: border-color .2s, background .2s;
+            position: relative;
+            overflow: hidden;
+            background: var(--bg);
+        }
+        .carto-dropzone:hover,
+        .carto-dropzone.drag-over {
+            border-color: #9ca3af;
+            background: #f9fafb;
+        }
+        .panel--sig .carto-dropzone:hover,
+        .panel--sig .carto-dropzone.drag-over     { border-color: #3b82f6; background: #eff6ff; }
+        .panel--cadastre .carto-dropzone:hover,
+        .panel--cadastre .carto-dropzone.drag-over { border-color: #7c3aed; background: #f5f3ff; }
+        .panel--temps .carto-dropzone:hover,
+        .panel--temps .carto-dropzone.drag-over   { border-color: #d97706; background: #fffbeb; }
+
+        .carto-dropzone-icon { font-size: 40px; line-height: 1; opacity: .5; }
+        .carto-dropzone-text { font-size: 14px; font-weight: 500; color: var(--text-muted); text-align: center; line-height: 1.5; }
+        .carto-dropzone-sub  { font-size: 12px; color: var(--text-muted); opacity: .7; }
+        .carto-dropzone input[type="file"] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+        }
+
+        /* Image affichée dans le panneau */
+        .carto-preview {
+            width: 100%;
+            border-radius: 6px;
+            display: block;
+            max-height: 600px;
+            object-fit: contain;
+            background: #f9fafb;
+        }
+        .carto-img-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .carto-img-controls small { color: var(--text-muted); font-size: 12px; margin-left: auto; }
+        .btn-remove-img {
+            background: white;
+            color: var(--red-mid);
+            border: 1.5px solid var(--red-mid);
+            padding: 6px 14px;
+            font-size: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            transition: background .15s;
+        }
+        .btn-remove-img:hover { background: var(--red-soft); }
+
+        /* Note textuelle sous l'image */
+        .carto-note {
+            margin-top: 14px;
+        }
+        .carto-note label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 6px;
+        }
+        .carto-note-input {
+            width: 100%;
+            min-height: 60px;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            font-family: inherit;
+            font-size: 13px;
+            color: var(--text);
+            outline: none;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            resize: vertical;
+        }
+        .carto-note-input:focus { border-color: var(--green-light); box-shadow: 0 0 0 3px rgba(64,145,108,.12); }
+        .carto-note-input:empty::before {
+            content: attr(data-placeholder);
+            color: var(--text-muted);
+        }
+
+        /* ── PRINT ── */
+        @media print {
+            body { background: white; }
+            .page { padding: 10mm; }
+            .actions { display: none; }
+            select { border: none; -webkit-appearance: none; }
+        }
+
+        @media (max-width: 700px) {
+            .info-grid { grid-template-columns: 1fr; }
+            .info-field { border-right: none; }
+            .bilan { grid-template-columns: 1fr 1fr; }
+            .bilan-box--total { grid-column: span 2; }
+            .header { flex-direction: column; text-align: center; }
+            select { max-width: 100%; }
+        }
+
+        /* == OPTIMISATIONS MOBILE / ANDROID == */
+        @media (max-width: 768px) {
+            .page { padding: 12px 10px 90px; }
+            .header { padding: 16px; gap: 12px; }
+            .header-text h1 { font-size: 15px; }
+
+            /* Tableaux criteres : empiler les colonnes */
+            .criteria-table thead { display: none; }
+            .criteria-table tbody tr {
+                display: block;
+                padding: 10px 12px;
+                border-bottom: 1px solid #e5e7eb;
+            }
+            .criteria-table td {
+                display: block;
+                padding: 4px 0;
+                text-align: left !important;
+            }
+            .criteria-table td:first-child {
+                font-weight: 600;
+                font-size: 13px;
+                margin-bottom: 6px;
+            }
+
+            /* Selects et inputs adaptes au toucher */
+            select {
+                max-width: 100%; width: 100%;
+                padding: 10px 32px 10px 12px;
+                min-height: 44px; font-size: 14px;
+            }
+            .info-field input {
+                min-height: 44px; font-size: 15px; padding: 10px 12px;
+            }
+
+            /* Bilan */
+            .bilan { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .bilan-val { font-size: 22px !important; }
+
+            /* Decision */
+            .decision-box { flex-direction: column; gap: 10px; }
+            .decision-score { margin-left: 0; }
+
+            /* Barre d'actions fixe en bas de l'ecran */
+            .actions {
+                flex-direction: row;
+                flex-wrap: wrap;
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                background: white;
+                padding: 8px 10px;
+                box-shadow: 0 -2px 12px rgba(0,0,0,.1);
+                z-index: 100;
+                gap: 6px;
+            }
+            .btn { justify-content: center; min-height: 44px; flex: 1; font-size: 13px; padding: 8px 10px; }
+            .actions-separator { display: none; }
+            .btn-danger-right { margin-left: 0; }
+
+            /* Panneaux carto */
+            .carto-dropzone { min-height: 160px; }
+            .carto-panel-body { padding: 14px; }
+
+            /* Fiches */
+            .fiches-bar { flex-direction: column; align-items: stretch; }
+            .fiches-bar select { width: 100%; }
+        }
+
+        /* Empeche le zoom automatique sur focus (iOS/Android) */
+        @media (max-width: 768px) {
+            input, select, textarea { font-size: 16px !important; }
+        }
+
+        /* ── GESTION DES FICHES ── */
+        .fiches-bar {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .fiches-bar-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        .fiches-select-wrap {
+            flex: 1;
+            min-width: 180px;
+        }
+        .fiches-select-wrap select {
+            max-width: 100%;
+        }
+        .fiches-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .btn-sm {
+            padding: 7px 14px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+        .btn-save {
+            background: var(--green-mid);
+            color: white;
+            border: none;
+        }
+        .btn-save:hover { background: var(--green-dark); }
+
+        .btn-new {
+            background: white;
+            color: var(--green-dark);
+            border: 1.5px solid var(--green-light);
+        }
+        .btn-new:hover { background: var(--green-soft); }
+
+        .btn-delete-fiche {
+            background: white;
+            color: var(--red-mid);
+            border: 1.5px solid var(--red-mid);
+        }
+        .btn-delete-fiche:hover { background: var(--red-soft); }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--green-dark);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 4px 16px rgba(0,0,0,.2);
+            opacity: 0;
+            transform: translateY(8px);
+            transition: all .25s;
+            pointer-events: none;
+            z-index: 999;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .toast.error { background: var(--red-mid); }
+
+        .current-fiche-name {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-left: 4px;
+        }
+    </style>
+    <!-- Capacitor runtime (injecte automatiquement par npx cap sync) -->
+    <script src="capacitor.js"></script>
+</head>
+<body>
+<div class="page">
+
+    <!-- EN-TÊTE -->
+    <div class="header">
+        <img src="https://i.postimg.cc/8z3NpnY8/gmrn.jpg" alt="Logo" onerror="this.style.display='none'">
+        <div class="header-text">
+            <h1>Fiche Décisionnelle — Projet de renouvellement de canalisation AEP</h1>
+            <p>Outil d'aide à la décision · Version 2025</p>
+        </div>
+    </div>
+
+    <!-- GESTION DES FICHES -->
+    <div class="fiches-bar">
+        <span class="fiches-bar-label">📁 Fiches</span>
+        <div class="fiches-select-wrap">
+            <select id="fiches_select" onchange="loadSelectedFiche()">
+                <option value="">— Sélectionner une fiche sauvegardée —</option>
+            </select>
+        </div>
+        <div class="fiches-actions">
+            <button class="btn btn-sm btn-new" onclick="newFiche()" title="Nouvelle fiche vierge">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Nouvelle
+            </button>
+            <button class="btn btn-sm btn-save" onclick="saveFiche()" title="Sauvegarder la fiche courante">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Sauvegarder
+            </button>
+            <button class="btn btn-sm btn-delete-fiche" onclick="deleteFiche()" title="Supprimer la fiche sélectionnée">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                Supprimer
+            </button>
+        </div>
+        <span class="current-fiche-name" id="current_fiche_label"></span>
+    </div>
+
+    <!-- INFORMATIONS GÉNÉRALES -->
+    <div class="card card--info">
+        <div class="card-header"><span class="dot"></span>Informations Générales</div>
+        <div class="card-body">
+            <div class="info-grid">
+                <div class="info-field">
+                    <label>Commune</label>
+                    <input type="text" id="commune" placeholder="Nom de la commune">
+                </div>
+                <div class="info-field">
+                    <label>Rue</label>
+                    <input type="text" id="rue" placeholder="Nom de la voirie">
+                </div>
+                <div class="info-field">
+                    <label>Alimenté par le réseau — étage de pression</label>
+                    <input type="text" id="realisé_le" placeholder="Ex : réseau basse pression">
+                </div>
+                <div class="info-field">
+                    <label>Nombre de canalisations</label>
+                    <input type="text" id="nb_canalisation" placeholder="Ex : 1">
+                </div>
+                <div class="info-field">
+                    <label>Nature des canalisations</label>
+                    <input type="text" id="nature_canalisation" placeholder="Ex : Fonte grise, PVC…">
+                </div>
+                <div class="info-field">
+                    <label>Diamètre(s) des canalisations</label>
+                    <input type="text" id="diametre_canalisation" placeholder="Ex : DN100, DN150…">
+                </div>
+                <div class="info-field">
+                    <label>Diamètre concerné (mm)</label>
+                    <input type="text" id="diametre_concerne" placeholder="Ex : 100">
+                </div>
+                <div class="info-field">
+                    <label>Année de pose retenue</label>
+                    <input type="text" id="annee_pose" placeholder="Ex : 1965">
+                </div>
+                <div class="info-field">
+                    <label>Instructeur</label>
+                    <input type="text" id="instructeur" placeholder="Nom du responsable">
+                </div>
+                <div class="info-field">
+                    <label>Validé le</label>
+                    <input type="date" id="valide_le">
+                </div>
+                <div class="info-field" style="grid-column: span 2;">
+                    <label>Décision finale le</label>
+                    <input type="text" id="date_decision" placeholder="Date de la décision finale">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CRITÈRES TECHNIQUES -->
+    <div class="card card--tech">
+        <div class="card-header"><span class="dot"></span>Critères Techniques</div>
+        <div class="card-body">
+            <table class="criteria-table">
+                <thead>
+                    <tr>
+                        <th style="width:45%">Sous-critère</th>
+                        <th style="width:30%">Note</th>
+                        <th style="width:10%">Coef.</th>
+                        <th style="width:15%">Valeur</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Âge</td>
+                        <td><select id="age_note">
+                            <option value="0">&lt; 30 ans</option>
+                            <option value="1">&lt; 50 ans</option>
+                            <option value="5">&lt; 70 ans</option>
+                            <option value="10">&gt; 70 ans</option>
+                        </select></td>
+                        <td><span class="coef-badge">1</span></td>
+                        <td><span class="valeur" id="age_valeur">—</span></td>
+                    </tr>
+                    <tr>
+                        <td>Coût de la réparation (lié au diamètre)</td>
+                        <td><select id="cout_reparation_note">
+                            <option value="1">≤ 100 mm</option>
+                            <option value="2">125 / 150 mm</option>
+                            <option value="5">200 à &lt; 300 mm</option>
+                            <option value="8">300 à &lt; 500 mm</option>
+                            <option value="10">≥ 500 mm</option>
+                        </select></td>
+                        <td><span class="coef-badge">1</span></td>
+                        <td><span class="valeur" id="cout_reparation_valeur">—</span></td>
+                    </tr>
+                    <tr>
+                        <td>Nombre de casses canalisations &lt; 3 ans</td>
+                        <td><select id="casses_3ans_note">
+                            <option value="0">0</option>
+                            <option value="2">1</option>
+                            <option value="5">2</option>
+                            <option value="10">&gt; 2</option>
+                        </select></td>
+                        <td><span class="coef-badge">2</span></td>
+                        <td><span class="valeur" id="casses_3ans_valeur">—</span></td>
+                    </tr>
+                    <tr>
+                        <td>Nombre de casses canalisations &lt; 10 ans</td>
+                        <td><select id="casses_10ans_note">
+                            <option value="0">0</option>
+                            <option value="2">1</option>
+                            <option value="5">2–3</option>
+                            <option value="10">&gt; 3</option>
+                        </select></td>
+                        <td><span class="coef-badge">2</span></td>
+                        <td><span class="valeur" id="casses_10ans_valeur">—</span></td>
+                    </tr>
+                    <tr>
+                        <td>Matériaux</td>
+                        <td><select id="materiaux_note">
+                            <option value="0">Fonte 2 GS</option>
+                            <option value="0">PE HD</option>
+                            <option value="3">Fonte GS</option>
+                            <option value="5">Fonte Grise JE</option>
+                            <option value="5">PE BD</option>
+                            <option value="5">PVC collé après 1980</option>
+                            <option value="10">Amiante C.</option>
+                            <option value="10">Fonte g. J.Pb</option>
+                            <option value="10">Fonte Lavril</option>
+                            <option value="10">PVC collé avant 1980</option>
+                            <option value="10">Acier</option>
+                        </select></td>
+                        <td><span class="coef-badge">1</span></td>
+                        <td><span class="valeur" id="materiaux_valeur">—</span></td>
+                    </tr>
+                    <tr>
+                        <td>Difficultés de réparations liées à l'environnement</td>
+                        <td><select id="difficultes_reparation_note">
+                            <option value="0">Satisfaisante</option>
+                            <option value="1">Inconnu</option>
+                            <option value="2">Surprofondeur</option>
+                            <option value="3">Terrain instable</option>
+                            <option value="3">Terrain privé type champs / domaine public communal</option>
+                            <option value="5">Terrain privé type logement individuel ou collectif</option>
+                            <option value="5">Terrain pollué</option>
+                            <option value="5">Sous-sol encombré (rue étroite / réseaux enterrés)</option>
+                        </select></td>
+                        <td><span class="coef-badge">1</span></td>
+                        <td><span class="valeur" id="difficultes_reparation_valeur">—</span></td>
+                    </tr>
+                    <tr>
+                        <td>Présence de branchements plombs</td>
+                        <td><select id="branchements_plombs_note">
+                            <option value="0">Absence</option>
+                            <option value="1">Inconnu</option>
+                            <option value="5">Présence</option>
+                        </select></td>
+                        <td><span class="coef-badge">1</span></td>
+                        <td><span class="valeur" id="branchements_plombs_valeur">—</span></td>
+                    </tr>
+                    <tr>
+                        <td>Type d'activité desservie par le réseau</td>
+                        <td><select id="type_activite_note">
+                            <option value="1">Habitat individuel</option>
+                            <option value="2">Habitat collectif</option>
+                            <option value="4">Bureaux collectifs</option>
+                            <option value="6">Rue commerçante</option>
+                            <option value="6">Écoles, cantines</option>
+                            <option value="8">Industries</option>
+                            <option value="10">Hôpital, clinique</option>
+                        </select></td>
+                        <td><span class="coef-badge">1</span></td>
+                        <td><span class="valeur" id="type_activite_valeur">—</span></td>
+                    </tr>
+                    <tr>
+                        <td>Traffic — Utilisation de la voirie</td>
+                        <td><select id="traffic_note">
+                            <option value="1">Résidentiel</option>
+                            <option value="3">Distribution principale</option>
+                            <option value="5">Rue piétonne ou commerçante</option>
+                            <option value="10">Axe structurant ou hyperstructurant</option>
+                        </select></td>
+                        <td><span class="coef-badge">1</span></td>
+                        <td><span class="valeur" id="traffic_valeur">—</span></td>
+                    </tr>
+                    <tr>
+                        <td>Amélioration de service en plus du renouvellement</td>
+                        <td><select id="amelioration_service_note">
+                            <option value="0">Aucune</option>
+                            <option value="3">Maillage</option>
+                            <option value="3">Rationnalisation</option>
+                            <option value="5">Pression</option>
+                            <option value="10">Sécurisation</option>
+                            <option value="10">Sanitaire</option>
+                        </select></td>
+                        <td><span class="coef-badge">2</span></td>
+                        <td><span class="valeur" id="amelioration_service_valeur">—</span></td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="3"><strong>Total Technique</strong></td>
+                        <td><span class="total-val" id="total_technique">—</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- CRITÈRES OPPORTUNITÉ -->
+    <div class="card card--opport">
+        <div class="card-header"><span class="dot"></span>Critères Opportunité</div>
+        <div class="card-body">
+            <table class="criteria-table">
+                <thead>
+                    <tr>
+                        <th style="width:45%">Sous-critère</th>
+                        <th style="width:30%">Note</th>
+                        <th style="width:10%">Coef.</th>
+                        <th style="width:15%">Valeur</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Travaux de voirie</td>
+                        <td><select id="travaux_voirie_note">
+                            <option value="0">Aucun</option>
+                            <option value="1">Coulis / ECF</option>
+                            <option value="3">Trottoir</option>
+                            <option value="5">Réfection fil d'eau à fil d'eau</option>
+                            <option value="8">Réfection façade à façade / reprise structure chaussée</option>
+                            <option value="10">Aménagement axe structurant ou hyperstructurant</option>
+                            <option value="10">Aménagement Transports en Commun</option>
+                        </select></td>
+                        <td><span class="coef-badge">2</span></td>
+                        <td><span class="valeur" id="travaux_voirie_valeur">—</span></td>
+                    </tr>
+                    <tr>
+                        <td>Travaux voirie récente</td>
+                        <td><select id="travaux_voirie_recente_note">
+                            <option value="-10">Voirie récente &lt; 5 ou 10 ans</option>
+                            <option value="3">Incertain</option>
+                            <option value="8">Certains dans les 2 ans</option>
+                            <option value="0">Aucun</option>
+                        </select></td>
+                        <td><span class="coef-badge">2</span></td>
+                        <td><span class="valeur" id="travaux_voirie_recente_valeur">—</span></td>
+                    </tr>
+                    <tr>
+                        <td>Urbanisation à + 5 ans</td>
+                        <td><select id="urbanisation_5ans_note">
+                            <option value="-10">Influente</option>
+                            <option value="-5">Inconnue</option>
+                            <option value="0">Non</option>
+                        </select></td>
+                        <td><span class="coef-badge">1</span></td>
+                        <td><span class="valeur" id="urbanisation_5ans_valeur">—</span></td>
+                    </tr>
+                    <tr>
+                        <td>Possibilité de coordination avec l'assainissement</td>
+                        <td><select id="coordination_assainissement_note">
+                            <option value="0">Non</option>
+                            <option value="10">Oui</option>
+                        </select></td>
+                        <td><span class="coef-badge">1</span></td>
+                        <td><span class="valeur" id="coordination_assainissement_valeur">—</span></td>
+                    </tr>
+                    <tr>
+                        <td>Possibilité de coordination avec d'autres concessionnaires</td>
+                        <td><select id="coordination_concessionnaires_note">
+                            <option value="0">Non</option>
+                            <option value="10">Oui</option>
+                        </select></td>
+                        <td><span class="coef-badge">1</span></td>
+                        <td><span class="valeur" id="coordination_concessionnaires_valeur">—</span></td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="3"><strong>Total Opportunité</strong></td>
+                        <td><span class="total-val" id="total_opportunite">—</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- DÉFENSE INCENDIE -->
+    <div class="card card--incendie">
+        <div class="card-header"><span class="dot"></span>Critères Défense Incendie</div>
+        <div class="card-body">
+            <table class="criteria-table">
+                <thead>
+                    <tr>
+                        <th style="width:45%">Sous-critère</th>
+                        <th style="width:30%">Note</th>
+                        <th style="width:10%">Coef.</th>
+                        <th style="width:15%">Valeur</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Renforcement envisagé pour la défense incendie</td>
+                        <td><select id="renforcement_incendie_note">
+                            <option value="-10">Incompatible avec la sécurité sanitaire</option>
+                            <option value="0">Non</option>
+                            <option value="10">Oui</option>
+                        </select></td>
+                        <td><span class="coef-badge">2</span></td>
+                        <td><span class="valeur" id="renforcement_incendie_valeur">—</span></td>
+                    </tr>
+                    <tr>
+                        <td>Surcoût défense contre l'incendie</td>
+                        <td><select id="surcout_incendie_note">
+                            <option value="-10">&gt; 60 000 € pour 1 hydrant</option>
+                            <option value="-5">&gt; 50 000 €</option>
+                            <option value="0">Non</option>
+                            <option value="10">&lt; 50 000 €</option>
+                        </select></td>
+                        <td><span class="coef-badge">3</span></td>
+                        <td><span class="valeur" id="surcout_incendie_valeur">—</span></td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="3"><strong>Total Défense Incendie</strong></td>
+                        <td><span class="total-val" id="total_defense_incendie">—</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- BILAN GÉNÉRAL -->
+    <div class="bilan">
+        <div class="bilan-box bilan-box--tech">
+            <div class="bilan-label">Total Technique</div>
+            <div class="bilan-val" id="bilan_technique">—</div>
+        </div>
+        <div class="bilan-box bilan-box--opport">
+            <div class="bilan-label">Total Opportunité</div>
+            <div class="bilan-val" id="bilan_opportunite">—</div>
+        </div>
+        <div class="bilan-box bilan-box--incendie">
+            <div class="bilan-label">Total Incendie</div>
+            <div class="bilan-val" id="bilan_incendie">—</div>
+        </div>
+        <div class="bilan-box bilan-box--total">
+            <div class="bilan-label">Score Total</div>
+            <div class="bilan-val" id="total_general">—</div>
+        </div>
+    </div>
+
+    <!-- DÉCISION -->
+    <div class="decision-box" id="decision_box">
+        <div class="decision-icon" id="decision_icon">⏳</div>
+        <div class="decision-text">
+            <strong id="decision_finale">En attente de saisie…</strong>
+            <span id="decision_sous_titre">Renseignez les critères pour obtenir une décision</span>
+        </div>
+        <div class="decision-score" id="decision_seuil"></div>
+    </div>
+
+    <!-- COMMENTAIRES -->
+    <div class="commentaire-zone">
+        <label for="commentaire">Commentaires</label>
+        <div id="commentaire" contenteditable="true" data-placeholder="Saisissez vos commentaires, observations ou réserves ici…"></div>
+    </div>
+
+    <!-- PANNEAU SIG -->
+    <div class="carto-panel panel--sig" id="panel_sig">
+        <div class="carto-panel-header">
+            <div class="carto-panel-header-left">
+                <span class="dot"></span>
+                🗺️ Extrait SIG
+            </div>
+            <button class="carto-panel-close" onclick="togglePanel('sig')" title="Fermer">✕</button>
+        </div>
+        <div class="carto-panel-body">
+            <div class="carto-dropzone" id="dropzone_sig">
+                <input type="file" accept="image/*" onchange="loadImage(event,'sig')">
+                <div class="carto-dropzone-icon">🗺️</div>
+                <div class="carto-dropzone-text">Glisser-déposer un extrait SIG ici<br>ou cliquer pour sélectionner un fichier</div>
+                <div class="carto-dropzone-sub">PNG, JPG, GIF — taille libre</div>
+            </div>
+            <div class="carto-note">
+                <label>Note / légende SIG</label>
+                <div class="carto-note-input" contenteditable="true" data-panel="sig" data-placeholder="Source, date, projection…"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANNEAU CADASTRE -->
+    <div class="carto-panel panel--cadastre" id="panel_cadastre">
+        <div class="carto-panel-header">
+            <div class="carto-panel-header-left">
+                <span class="dot"></span>
+                📐 Extrait Cadastre
+            </div>
+            <button class="carto-panel-close" onclick="togglePanel('cadastre')" title="Fermer">✕</button>
+        </div>
+        <div class="carto-panel-body">
+            <div class="carto-dropzone" id="dropzone_cadastre">
+                <input type="file" accept="image/*" onchange="loadImage(event,'cadastre')">
+                <div class="carto-dropzone-icon">📐</div>
+                <div class="carto-dropzone-text">Glisser-déposer un extrait Cadastre ici<br>ou cliquer pour sélectionner un fichier</div>
+                <div class="carto-dropzone-sub">PNG, JPG, GIF — taille libre</div>
+            </div>
+            <div class="carto-note">
+                <label>Note / légende Cadastre</label>
+                <div class="carto-note-input" contenteditable="true" data-panel="cadastre" data-placeholder="Référence parcelle, section…"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANNEAU REMONTER LE TEMPS -->
+    <div class="carto-panel panel--temps" id="panel_temps">
+        <div class="carto-panel-header">
+            <div class="carto-panel-header-left">
+                <span class="dot"></span>
+                🕰️ Remonter le temps — Photos anciennes
+            </div>
+            <button class="carto-panel-close" onclick="togglePanel('temps')" title="Fermer">✕</button>
+        </div>
+        <div class="carto-panel-body">
+            <div class="carto-dropzone" id="dropzone_temps">
+                <input type="file" accept="image/*" onchange="loadImage(event,'temps')">
+                <div class="carto-dropzone-icon">🕰️</div>
+                <div class="carto-dropzone-text">Glisser-déposer une photo ancienne ici<br>ou cliquer pour sélectionner un fichier</div>
+                <div class="carto-dropzone-sub">PNG, JPG, GIF — taille libre</div>
+            </div>
+            <div class="carto-note">
+                <label>Note / légende photo</label>
+                <div class="carto-note-input" contenteditable="true" data-panel="temps" data-placeholder="Date approximative, source, description…"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="actions">
+        <button class="btn btn-primary" onclick="exportToPDF()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exporter en PDF
+        </button>
+        <button class="btn btn-primary" onclick="saveAsHTML()" style="background:var(--green-mid);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Sauvegarder en HTML
+        </button>
+
+        <div class="actions-separator"></div>
+
+        <button class="btn btn-carto btn-carto-sig" id="btn_sig" onclick="togglePanel('sig')" title="Ouvrir l'extrait SIG">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+            SIG
+        </button>
+        <button class="btn btn-carto btn-carto-cadastre" id="btn_cadastre" onclick="togglePanel('cadastre')" title="Ouvrir l'extrait Cadastre">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+            Cadastre
+        </button>
+        <button class="btn btn-carto btn-carto-temps" id="btn_temps" onclick="togglePanel('temps')" title="Photos anciennes">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Remonter le temps
+        </button>
+
+        <div class="actions-separator"></div>
+
+        <button class="btn btn-danger btn-danger-right" onclick="resetForm()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+            Réinitialiser
+        </button>
+    </div>
+
+    <div class="footer">
+        <p id="pdf_file_name"></p>
+    </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast_msg"></div>
+
+<!-- Bibliothèques PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+/* ── PANNEAUX CARTOGRAPHIQUES ── */
+
+const PANELS = ['sig', 'cadastre', 'temps'];
+
+function togglePanel(name) {
+    const panel = document.getElementById('panel_' + name);
+    const btn   = document.getElementById('btn_' + name);
+    const isOpen = panel.classList.contains('open');
+
+    // Fermer tous les panneaux
+    PANELS.forEach(p => {
+        document.getElementById('panel_' + p).classList.remove('open');
+        document.getElementById('btn_' + p).classList.remove('active');
+    });
+
+    // Ouvrir celui demandé si ce n'était pas déjà ouvert
+    if (!isOpen) {
+        panel.classList.add('open');
+        btn.classList.add('active');
+        // Scroller vers le panneau
+        setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    }
+}
+
+function loadImage(event, panelName) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        renderImage(panelName, e.target.result, file.name);
+    };
+    reader.readAsDataURL(file);
+}
+
+function renderImage(panelName, src, fileName) {
+    const dropzone = document.getElementById('dropzone_' + panelName);
+    dropzone.innerHTML = `
+        <img src="${src}" class="carto-preview" alt="Extrait ${panelName}">
+        <div class="carto-img-controls">
+            <button class="btn-remove-img" onclick="removeImage('${panelName}')">✕ Supprimer l'image</button>
+            <small>${fileName || ''}</small>
+        </div>
+    `;
+}
+
+function removeImage(panelName) {
+    const icons = { sig: '🗺️', cadastre: '📐', temps: '🕰️' };
+    const texts = {
+        sig:      'Glisser-déposer un extrait SIG ici<br>ou cliquer pour sélectionner un fichier',
+        cadastre: 'Glisser-déposer un extrait Cadastre ici<br>ou cliquer pour sélectionner un fichier',
+        temps:    'Glisser-déposer une photo ancienne ici<br>ou cliquer pour sélectionner un fichier',
+    };
+    const dropzone = document.getElementById('dropzone_' + panelName);
+    dropzone.innerHTML = `
+        <input type="file" accept="image/*" onchange="loadImage(event,'${panelName}')">
+        <div class="carto-dropzone-icon">${icons[panelName]}</div>
+        <div class="carto-dropzone-text">${texts[panelName]}</div>
+        <div class="carto-dropzone-sub">PNG, JPG, GIF — taille libre</div>
+    `;
+}
+
+// Drag & drop natif sur les dropzones
+document.addEventListener('DOMContentLoaded', () => {
+    PANELS.forEach(name => {
+        const dz = document.getElementById('dropzone_' + name);
+        if (!dz) return;
+
+        dz.addEventListener('dragover', e => {
+            e.preventDefault();
+            dz.classList.add('drag-over');
+        });
+        dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+        dz.addEventListener('drop', e => {
+            e.preventDefault();
+            dz.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = ev => renderImage(name, ev.target.result, file.name);
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Placeholder sur les notes contenteditable
+        dz.closest('.carto-panel-body')?.querySelectorAll('.carto-note-input').forEach(el => {
+            el.addEventListener('focus', function() {
+                if (!this.textContent.trim()) this.innerHTML = '';
+            });
+        });
+    });
+
+    // Placeholder visuel pour les notes
+    document.querySelectorAll('.carto-note-input').forEach(el => {
+        const ph = el.getAttribute('data-placeholder');
+        if (ph && !el.textContent.trim()) {
+            el.style.color = 'var(--text-muted)';
+            el.textContent = ph;
+        }
+        el.addEventListener('focus', function() {
+            if (this.textContent === this.getAttribute('data-placeholder')) {
+                this.textContent = '';
+                this.style.color = 'var(--text)';
+            }
+        });
+        el.addEventListener('blur', function() {
+            if (!this.textContent.trim()) {
+                this.textContent = this.getAttribute('data-placeholder') || '';
+                this.style.color = 'var(--text-muted)';
+            }
+        });
+    });
+});
+
+/* ── FIN PANNEAUX CARTOGRAPHIQUES ── */
+
+const STORAGE_KEY = 'fd_aep_fiches';
+let currentFicheKey = null;
+
+function showToast(msg, isError = false) {
+    const t = document.getElementById('toast_msg');
+    t.textContent = msg;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => { t.className = 'toast'; }, 2800);
+}
+
+function getAllFiches() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+    catch(e) { return {}; }
+}
+
+function buildFicheKey(commune, rue) {
+    const c = (commune || 'Commune').trim().replace(/\s+/g, '_');
+    const r = (rue || 'Rue').trim().replace(/\s+/g, '_');
+    return `${c}__${r}__${Date.now()}`;
+}
+
+function refreshSelect() {
+    const sel = document.getElementById('fiches_select');
+    const fiches = getAllFiches();
+    const keys = Object.keys(fiches).sort((a, b) =>
+        (fiches[b].savedAt || 0) - (fiches[a].savedAt || 0)
+    );
+    sel.innerHTML = '<option value="">— Sélectionner une fiche sauvegardée —</option>';
+    keys.forEach(k => {
+        const opt = document.createElement('option');
+        opt.value = k;
+        opt.textContent = fiches[k].label || k;
+        if (k === currentFicheKey) opt.selected = true;
+        sel.appendChild(opt);
+    });
+}
+
+function collectFormData() {
+    const data = { inputs: {}, selects: {}, commentaire: '', savedAt: Date.now() };
+    document.querySelectorAll('input[type="text"], input[type="date"]').forEach(i => {
+        if (i.id) data.inputs[i.id] = i.value;
+    });
+    document.querySelectorAll('select').forEach(s => {
+        if (s.id) data.selects[s.id] = s.value;
+    });
+    data.commentaire = document.getElementById('commentaire').innerHTML;
+    return data;
+}
+
+function applyFormData(data) {
+    if (!data) return;
+    Object.entries(data.inputs || {}).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+    });
+    Object.entries(data.selects || {}).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+    });
+    const com = document.getElementById('commentaire');
+    if (com) com.innerHTML = data.commentaire || '';
+    calculateValues();
+}
+
+function saveFiche() {
+    const commune = document.getElementById('commune').value.trim();
+    const rue     = document.getElementById('rue').value.trim();
+
+    if (!commune && !rue) {
+        showToast('Renseignez au moins la Commune ou la Rue avant de sauvegarder.', true);
+        return;
+    }
+
+    const fiches = getAllFiches();
+    const label  = [commune, rue].filter(Boolean).join(' — ');
+
+    // Si fiche existante : mise à jour ; sinon nouvelle clé
+    if (!currentFicheKey || !fiches[currentFicheKey]) {
+        currentFicheKey = buildFicheKey(commune, rue);
+    }
+
+    const data = collectFormData();
+    data.label = label;
+    fiches[currentFicheKey] = data;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(fiches));
+
+    document.getElementById('current_fiche_label').textContent = `— ${label}`;
+    refreshSelect();
+    showToast(`✅ Fiche « ${label} » sauvegardée.`);
+}
+
+function loadSelectedFiche() {
+    const sel = document.getElementById('fiches_select');
+    const key = sel.value;
+    if (!key) return;
+
+    const fiches = getAllFiches();
+    if (!fiches[key]) { showToast('Fiche introuvable.', true); return; }
+
+    currentFicheKey = key;
+    applyFormData(fiches[key]);
+    document.getElementById('current_fiche_label').textContent = `— ${fiches[key].label || key}`;
+    showToast(`📂 Fiche « ${fiches[key].label} » chargée.`);
+}
+
+function newFiche() {
+    if (!confirm('Créer une nouvelle fiche vierge ? Les données non sauvegardées seront perdues.')) return;
+    currentFicheKey = null;
+    resetForm();
+    document.getElementById('current_fiche_label').textContent = '';
+    document.getElementById('fiches_select').value = '';
+    showToast('Nouvelle fiche créée.');
+}
+
+function deleteFiche() {
+    const sel   = document.getElementById('fiches_select');
+    const key   = sel.value;
+    if (!key) { showToast('Sélectionnez d\'abord une fiche à supprimer.', true); return; }
+
+    const fiches = getAllFiches();
+    const label  = fiches[key]?.label || key;
+    if (!confirm(`Supprimer définitivement la fiche « ${label} » ?`)) return;
+
+    delete fiches[key];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(fiches));
+
+    if (currentFicheKey === key) {
+        currentFicheKey = null;
+        document.getElementById('current_fiche_label').textContent = '';
+        resetForm();
+    }
+    refreshSelect();
+    showToast(`🗑️ Fiche « ${label} » supprimée.`);
+}
+
+/* ── LOGIQUE MÉTIER (inchangée) ── */
+
+function adjustCoutReparation() {
+    const diametreInput = document.getElementById('diametre_concerne');
+    const diametre = parseFloat(diametreInput.value);
+    const coutReparationSelect = document.getElementById('cout_reparation_note');
+    const autorisedDiameters = [60,80,90,100,150,200,250,300,350,400,450,500,600,700];
+
+    if (isNaN(diametre)) return;
+
+    if (!autorisedDiameters.includes(diametre)) {
+        alert("Diamètre non autorisé. Valeurs acceptées : " + autorisedDiameters.join(', '));
+        diametreInput.value = '';
+        return;
+    }
+
+    let cout = 0;
+    switch (true) {
+        case (diametre >= 60 && diametre <= 100): cout = 1; break;
+        case (diametre >= 101 && diametre <= 199): cout = 2; break;
+        case (diametre >= 200 && diametre <= 299): cout = 5; break;
+        case (diametre >= 300 && diametre <= 499): cout = 8; break;
+        default: cout = 10;
+    }
+    coutReparationSelect.value = cout;
+}
+
+function adjustAgeSelection() {
+    const anneePose = parseInt(document.getElementById('annee_pose').value, 10);
+    const currentYear = new Date().getFullYear();
+    const ageNoteSelect = document.getElementById('age_note');
+
+    if (!isNaN(anneePose)) {
+        const age = currentYear - anneePose;
+        if (age < 30)       ageNoteSelect.value = 0;
+        else if (age < 50)  ageNoteSelect.value = 1;
+        else if (age < 70)  ageNoteSelect.value = 5;
+        else                ageNoteSelect.value = 10;
+    }
+}
+
+function val(id, coef) {
+    return (parseFloat(document.getElementById(id).value) || 0) * coef;
+}
+
+function setSpan(id, value) {
+    const el = document.getElementById(id);
+    el.textContent = value;
+}
+
+function calculateValues() {
+    adjustCoutReparation();
+    adjustAgeSelection();
+
+    const age          = val('age_note', 1);
+    const coutRep      = val('cout_reparation_note', 1);
+    const c3           = val('casses_3ans_note', 2);
+    const c10          = val('casses_10ans_note', 2);
+    const mat          = val('materiaux_note', 1);
+    const diff         = val('difficultes_reparation_note', 1);
+    const plombs       = val('branchements_plombs_note', 1);
+    const activite     = val('type_activite_note', 1);
+    const traffic      = val('traffic_note', 1);
+    const amelio       = val('amelioration_service_note', 2);
+
+    const totalTech = age + coutRep + c3 + c10 + mat + diff + plombs + activite + traffic + amelio;
+
+    setSpan('age_valeur',                    age);
+    setSpan('cout_reparation_valeur',        coutRep);
+    setSpan('casses_3ans_valeur',            c3);
+    setSpan('casses_10ans_valeur',           c10);
+    setSpan('materiaux_valeur',              mat);
+    setSpan('difficultes_reparation_valeur', diff);
+    setSpan('branchements_plombs_valeur',    plombs);
+    setSpan('type_activite_valeur',          activite);
+    setSpan('traffic_valeur',                traffic);
+    setSpan('amelioration_service_valeur',   amelio);
+    setSpan('total_technique',               totalTech);
+
+    const voirie    = val('travaux_voirie_note', 2);
+    const voirieRec = val('travaux_voirie_recente_note', 2);
+    const urba      = val('urbanisation_5ans_note', 1);
+    const coordAss  = val('coordination_assainissement_note', 1);
+    const coordConc = val('coordination_concessionnaires_note', 1);
+
+    const totalOpp = voirie + voirieRec + urba + coordAss + coordConc;
+
+    setSpan('travaux_voirie_valeur',              voirie);
+    setSpan('travaux_voirie_recente_valeur',      voirieRec);
+    setSpan('urbanisation_5ans_valeur',           urba);
+    setSpan('coordination_assainissement_valeur', coordAss);
+    setSpan('coordination_concessionnaires_valeur', coordConc);
+    setSpan('total_opportunite',                  totalOpp);
+
+    const renfo  = val('renforcement_incendie_note', 2);
+    const surcout = val('surcout_incendie_note', 3);
+    const totalInc = renfo + surcout;
+
+    setSpan('renforcement_incendie_valeur', renfo);
+    setSpan('surcout_incendie_valeur',      surcout);
+    setSpan('total_defense_incendie',       totalInc);
+
+    const totalGeneral = totalTech + totalOpp + totalInc;
+    setSpan('total_general',     totalGeneral);
+
+    // Mise à jour du bilan
+    document.getElementById('bilan_technique').textContent   = totalTech;
+    document.getElementById('bilan_opportunite').textContent = totalOpp;
+    document.getElementById('bilan_incendie').textContent    = totalInc;
+
+    // Décision
+    const box     = document.getElementById('decision_box');
+    const titre   = document.getElementById('decision_finale');
+    const sousTit = document.getElementById('decision_sous_titre');
+    const icon    = document.getElementById('decision_icon');
+    const seuil   = document.getElementById('decision_seuil');
+    const SEUIL   = 57;
+
+    box.className = 'decision-box ' + (totalGeneral >= SEUIL ? 'ko' : 'ok');
+    icon.textContent = totalGeneral >= SEUIL ? '🔴' : '🟢';
+    titre.textContent = totalGeneral >= SEUIL ? 'Travaux à définir' : 'Aucun travaux nécessaires';
+    sousTit.textContent = totalGeneral >= SEUIL
+        ? 'Le score dépasse le seuil décisionnel — une planification de travaux est recommandée.'
+        : 'Le score est en dessous du seuil décisionnel — aucune intervention requise à ce stade.';
+    seuil.textContent = `Score : ${totalGeneral} / seuil : ${SEUIL}`;
+}
+
+/* ── EXPORT PDF ── */
+async function exportToPDF() {
+    const { jsPDF } = window.jspdf;
+    const commune = document.getElementById('commune').value.trim() || 'Commune';
+    const rue     = document.getElementById('rue').value.trim() || 'Rue';
+    const date    = new Date();
+    const mois    = date.toLocaleString('fr-FR', { month: 'long' });
+    const annee   = date.getFullYear();
+    const fileName = `FD_${rue}_${commune}_${mois}_${annee}.pdf`;
+    document.getElementById('pdf_file_name').textContent = fileName;
+
+    // ── Constantes PDF A4
+    const pageW    = 210, pageH = 297, margin = 8, footerH = 10;
+    const contentW = pageW - 2 * margin;
+    const contentH = pageH - 2 * margin - footerH;
+
+    // ── 1. Collecter les images carto AVANT de toucher au DOM
+    //       On lit directement le src base64 → résolution native garantie
+    const cartoData = [];
+    const LABELS = { sig: 'SIG', cadastre: 'Cadastre', temps: 'Remonter le temps' };
+    PANELS.forEach(p => {
+        const img  = document.querySelector('#panel_' + p + ' .carto-preview');
+        const note = document.querySelector('#panel_' + p + ' .carto-note-input');
+        if (!img) return;
+        // Récupérer le format réel (jpeg ou png) depuis le data-URL
+        const src    = img.src;                          // data:image/jpeg;base64,…
+        const fmt    = src.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
+        const noteTxt = (note && note.textContent !== note.getAttribute('data-placeholder'))
+                        ? note.textContent.trim() : '';
+        cartoData.push({ label: LABELS[p], src, fmt, noteTxt });
+    });
+
+    // ── 2. Mémoriser l'état des panneaux, les fermer tous pour la capture principale
+    const panelStates = {};
+    PANELS.forEach(p => {
+        panelStates[p] = document.getElementById('panel_' + p).classList.contains('open');
+        document.getElementById('panel_' + p).classList.remove('open');
+    });
+
+    // ── 3. Masquer actions + footer
+    const actionsEl = document.querySelector('.actions');
+    const footerEl  = document.querySelector('.footer');
+    const prevA = actionsEl.style.display;
+    const prevF = footerEl.style.display;
+    actionsEl.style.display = 'none';
+    footerEl.style.display  = 'none';
+
+    await new Promise(r => setTimeout(r, 80));
+
+    try {
+        // ── 4. Capture de la fiche principale à scale:3 (haute résolution)
+        const canvas = await html2canvas(document.querySelector('.page'), {
+            scale: 3,
+            useCORS: true,
+            backgroundColor: '#f8faf9'
+        });
+
+        const pdf = new jsPDF('p', 'mm', 'a4');
+
+        // Découper et insérer la fiche page par page
+        let y = 0, pageNum = 1;
+        while (y < canvas.height) {
+            if (pageNum > 1) pdf.addPage();
+            const slice = document.createElement('canvas');
+            const ctx   = slice.getContext('2d');
+            slice.width  = canvas.width;
+            slice.height = Math.min(canvas.height - y, Math.round(contentH * canvas.width / contentW));
+            ctx.drawImage(canvas, 0, y, canvas.width, slice.height, 0, 0, slice.width, slice.height);
+            pdf.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin,
+                         contentW, slice.height * contentW / slice.width);
+            _addFooter(pdf, pageNum, fileName, pageW, pageH);
+            y += slice.height;
+            pageNum++;
+        }
+
+        // ── 5. Pages annexes : une page par image carto, pleine résolution
+        cartoData.forEach(({ label, src, fmt, noteTxt }) => {
+            pdf.addPage();
+            pageNum++;
+
+            // En-tête de l'annexe
+            pdf.setFillColor(30, 58, 95);           // bleu marine par défaut
+            if (label.includes('Cadastre')) pdf.setFillColor(124, 58, 237);   // violet
+            if (label.includes('temps'))    pdf.setFillColor(180, 83, 9);     // ambre
+            pdf.roundedRect(margin, margin, contentW, 10, 2, 2, 'F');
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(11);
+            pdf.setFont(undefined, 'bold');
+            pdf.text(label, margin + 4, margin + 6.8);
+            pdf.setTextColor(0, 0, 0);
+            pdf.setFont(undefined, 'normal');
+
+            // Calculer les dimensions de l'image pour qu'elle tienne dans la page
+            // en conservant le ratio, avec une marge haute pour l'en-tête
+            const imgTopY   = margin + 13;
+            const noteH     = noteTxt ? 18 : 0;
+            const maxImgH   = contentH - 13 - noteH - 2;   // 2 mm de séparation
+
+            // Charger l'image dans un élément temporaire pour connaître ses dimensions
+            const tmpImg = new Image();
+            tmpImg.src = src;
+            // Les dimensions sont déjà chargées (l'image est dans le DOM)
+            const nw = tmpImg.naturalWidth  || 800;
+            const nh = tmpImg.naturalHeight || 600;
+            const ratio  = nw / nh;
+            let imgW = contentW;
+            let imgH = imgW / ratio;
+            if (imgH > maxImgH) { imgH = maxImgH; imgW = imgH * ratio; }
+            const imgX = margin + (contentW - imgW) / 2;   // centré horizontalement
+
+            pdf.addImage(src, fmt, imgX, imgTopY, imgW, imgH);
+
+            // Note sous l'image
+            if (noteTxt) {
+                const noteY = imgTopY + imgH + 4;
+                pdf.setFontSize(8.5);
+                pdf.setTextColor(80, 80, 80);
+                pdf.setFont(undefined, 'italic');
+                const lines = pdf.splitTextToSize(noteTxt, contentW);
+                pdf.text(lines, margin, noteY);
+                pdf.setFont(undefined, 'normal');
+                pdf.setTextColor(0, 0, 0);
+            }
+
+            _addFooter(pdf, pageNum, fileName, pageW, pageH);
+        });
+
+        pdf.save(fileName);
+
+    } finally {
+        // ── 6. Restaurer le DOM
+        PANELS.forEach(p => {
+            const panel = document.getElementById('panel_' + p);
+            if (panelStates[p]) panel.classList.add('open');
+            else                 panel.classList.remove('open');
+        });
+        actionsEl.style.display = prevA;
+        footerEl.style.display  = prevF;
+    }
+}
+
+function _addFooter(pdf, pageNum, fileName, pageW, pageH) {
+    pdf.setFontSize(8.5);
+    pdf.setTextColor(120, 120, 120);
+    const txt = `Page ${pageNum} | ${fileName}`;
+    pdf.text(txt, (pageW - pdf.getTextWidth(txt)) / 2, pageH - 4);
+    pdf.setTextColor(0, 0, 0);
+}
+
+/* ── SAUVEGARDE EN HTML ── */
+function saveAsHTML() {
+    const commune = document.getElementById('commune').value.trim() || 'Commune';
+    const rue     = document.getElementById('rue').value.trim() || 'Rue';
+    const date    = new Date();
+    const mois    = date.toLocaleString('fr-FR', { month: 'long' });
+    const annee   = date.getFullYear();
+
+    const nomFichier = `FD_${rue.replace(/\s+/g, '_')}_${commune.replace(/\s+/g, '_')}_${mois}_${annee}.html`;
+
+    // Cloner le document entier
+    const clone = document.documentElement.cloneNode(true);
+
+    // Injecter les valeurs des inputs dans les attributs value du clone
+    document.querySelectorAll('input[type="text"], input[type="date"]').forEach(input => {
+        if (!input.id) return;
+        const cloneEl = clone.querySelector('#' + input.id);
+        if (cloneEl) cloneEl.setAttribute('value', input.value);
+    });
+
+    // Injecter les valeurs des selects (sauf la liste de fiches)
+    document.querySelectorAll('select').forEach(sel => {
+        if (!sel.id || sel.id === 'fiches_select') return;
+        const cloneEl = clone.querySelector('#' + sel.id);
+        if (!cloneEl) return;
+        // Marquer l'option sélectionnée
+        Array.from(cloneEl.options).forEach(opt => opt.removeAttribute('selected'));
+        const selectedOpt = cloneEl.querySelector(`option[value="${sel.value}"]`);
+        if (selectedOpt) selectedOpt.setAttribute('selected', 'selected');
+    });
+
+    // Injecter le contenu du commentaire
+    const commentSrc   = document.getElementById('commentaire');
+    const commentClone = clone.querySelector('#commentaire');
+    if (commentClone) commentClone.innerHTML = commentSrc.innerHTML;
+
+    // Mettre à jour le titre de la page avec la commune et la rue
+    const titleEl = clone.querySelector('title');
+    if (titleEl) titleEl.textContent = `FD — ${commune} — ${rue}`;
+
+    // Supprimer la liste des fiches sauvegardées du clone (spécifique à cette instance)
+    const fichesBar = clone.querySelector('.fiches-bar');
+    if (fichesBar) fichesBar.remove();
+
+    // Déclencher le téléchargement
+    const blob = new Blob(['<!DOCTYPE html>\n' + clone.outerHTML], { type: 'text/html;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = nomFichier;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    document.getElementById('pdf_file_name').textContent = nomFichier;
+    showToast(`💾 Fichier « ${nomFichier} » téléchargé.`);
+}
+
+/* ── RESET ── */
+function resetForm() {
+    if (!confirm('Réinitialiser tous les champs ?')) return;
+    document.querySelectorAll('input[type="text"], input[type="date"]').forEach(i => i.value = '');
+    document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+    document.querySelectorAll('.valeur, .total-val, .bilan-val').forEach(s => s.textContent = '—');
+    const c = document.getElementById('commentaire');
+    c.innerHTML = ''; c.style.height = 'auto';
+    document.getElementById('pdf_file_name').textContent = '';
+    const box = document.getElementById('decision_box');
+    box.className = 'decision-box';
+    document.getElementById('decision_icon').textContent = '⏳';
+    document.getElementById('decision_finale').textContent = 'En attente de saisie…';
+    document.getElementById('decision_sous_titre').textContent = 'Renseignez les critères pour obtenir une décision';
+    document.getElementById('decision_seuil').textContent = '';
+}
+
+/* ── EVENTS ── */
+document.addEventListener('DOMContentLoaded', () => {
+    const diametreInput = document.getElementById('diametre_concerne');
+    diametreInput.addEventListener('blur', () => { adjustCoutReparation(); calculateValues(); });
+
+    document.getElementById('annee_pose').addEventListener('input', () => { adjustAgeSelection(); calculateValues(); });
+
+    document.querySelectorAll('select').forEach(s => {
+        if (s.id !== 'fiches_select') s.addEventListener('change', calculateValues);
+    });
+
+    const commentaire = document.getElementById('commentaire');
+    commentaire.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
+
+    // Auto-sauvegarde à la fermeture de la page
+    window.addEventListener('beforeunload', () => {
+        if (currentFicheKey) saveFiche();
+    });
+
+    // Initialisation de la liste de fiches
+    refreshSelect();
+});
+</script>
+</body>
+</html>
