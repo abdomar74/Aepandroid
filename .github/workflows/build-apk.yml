@@ -40,7 +40,9 @@ jobs:
 
       # 5. Installer les dépendances (Capacitor + plugins)
       - name: npm install
-        run: npm install
+        run: |
+          nmp install
+          npm install @capacitor/android
 
       # 6. Installer Capacitor CLI
       - name: Installer Capacitor CLI
