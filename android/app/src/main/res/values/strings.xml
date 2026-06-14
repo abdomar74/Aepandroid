@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">Fiche AEP</string>
-    <string name="title_activity_main">Fiche AEP</string>
-    <string name="package_name">fr.collectivite.ficheaep</string>
-    <string name="custom_url_scheme">fr.collectivite.ficheaep</string>
-</resources>
