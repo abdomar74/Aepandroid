@@ -1,18 +1,21 @@
 {
-  "name": "fiche-aep",
-  "version": "1.0.0",
-  "description": "Fiche Décisionnelle AEP — Application Android",
-  "main": "index.js",
-  "scripts": {
-    "sync":  "npx cap sync",
-    "open":  "npx cap open android",
-    "build": "npx cap sync android"
+  "appId":   "fr.collectivite.ficheaep",
+  "appName": "Fiche AEP",
+  "webDir":  "www",
+  "server": {
+    "androidScheme": "https"
   },
-  "dependencies": {
-    "@capacitor/android": "^6.0.0",
-    "@capacitor/core":    "^6.0.0"
+  "android": {
+    "allowMixedContent": true,
+    "backgroundColor":   "#f8faf9",
+    "minWebViewVersion": 80
   },
-  "devDependencies": {
-    "@capacitor/cli": "^6.0.0"
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor":    "#1b4332",
+      "androidSplashResourceName": "splash",
+      "showSpinner": false
+    }
   }
 }
