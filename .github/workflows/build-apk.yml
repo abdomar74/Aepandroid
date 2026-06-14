@@ -47,12 +47,12 @@ jobs:
         run: npm install -g @capacitor/cli@latest
 
       # 7. Ajouter la plateforme Android
-      - name: Cap add android
-        run: npx cap add android
+      - name: Cap sync
+        run: npx cap sync
 
       # 8. Synchroniser le HTML dans le projet Android
       - name: Cap sync
-        run: npx cap sync android
+        run: npx cap sync
 
       # 9. Accepter les licences Android SDK
       - name: Accepter licences SDK
