@@ -1784,7 +1784,8 @@ async function exportToPDF() {
             _addFooter(pdf, pageNum, fileName, pageW, pageH);
         });
 
-        pdf.save(fileName);
+        // ── Sauvegarde compatible Android + Desktop
+        await savePdfAndroid(pdf, fileName);
 
     } finally {
         // ── 6. Restaurer le DOM
@@ -1806,61 +1807,112 @@ function _addFooter(pdf, pageNum, fileName, pageW, pageH) {
     pdf.setTextColor(0, 0, 0);
 }
 
-/* ── SAUVEGARDE EN HTML ── */
+/* ── DÉTECTION ANDROID ── */
+function isAndroid() {
+    return typeof window.Capacitor !== 'undefined' && window.Capacitor.isNativePlatform();
+}
+
+/* ── SAUVEGARDE PDF COMPATIBLE ANDROID + DESKTOP ── */
+async function savePdfAndroid(pdf, fileName) {
+    if (isAndroid()) {
+        // Sur Android : convertir en base64 et ouvrir via le partage natif
+        const pdfBase64 = pdf.output('datauristring'); // data:application/pdf;base64,...
+        const base64    = pdfBase64.split(',')[1];
+
+        // Utiliser l'API de partage Web (disponible dans Capacitor)
+        if (navigator.share) {
+            // Créer un fichier Blob et le partager
+            const blob = b64toBlob(base64, 'application/pdf');
+            const file = new File([blob], fileName, { type: 'application/pdf' });
+            try {
+                await navigator.share({ files: [file], title: fileName });
+                showToast('📤 PDF prêt à partager ou enregistrer !');
+                return;
+            } catch(e) {
+                // L'utilisateur a annulé ou partage non dispo → fallback
+            }
+        }
+        // Fallback Android : ouvrir le PDF dans le navigateur intégré
+        const blob = b64toBlob(base64, 'application/pdf');
+        const url  = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        showToast('📄 PDF ouvert — utilise le bouton ⬇ pour l\'enregistrer');
+    } else {
+        // Desktop : comportement normal
+        pdf.save(fileName);
+    }
+}
+
+/* ── SAUVEGARDE HTML COMPATIBLE ANDROID + DESKTOP ── */
 function saveAsHTML() {
     const commune = document.getElementById('commune').value.trim() || 'Commune';
     const rue     = document.getElementById('rue').value.trim() || 'Rue';
     const date    = new Date();
     const mois    = date.toLocaleString('fr-FR', { month: 'long' });
     const annee   = date.getFullYear();
-
     const nomFichier = `FD_${rue.replace(/\s+/g, '_')}_${commune.replace(/\s+/g, '_')}_${mois}_${annee}.html`;
 
     // Cloner le document entier
     const clone = document.documentElement.cloneNode(true);
 
-    // Injecter les valeurs des inputs dans les attributs value du clone
     document.querySelectorAll('input[type="text"], input[type="date"]').forEach(input => {
         if (!input.id) return;
         const cloneEl = clone.querySelector('#' + input.id);
         if (cloneEl) cloneEl.setAttribute('value', input.value);
     });
 
-    // Injecter les valeurs des selects (sauf la liste de fiches)
     document.querySelectorAll('select').forEach(sel => {
         if (!sel.id || sel.id === 'fiches_select') return;
         const cloneEl = clone.querySelector('#' + sel.id);
         if (!cloneEl) return;
-        // Marquer l'option sélectionnée
         Array.from(cloneEl.options).forEach(opt => opt.removeAttribute('selected'));
         const selectedOpt = cloneEl.querySelector(`option[value="${sel.value}"]`);
         if (selectedOpt) selectedOpt.setAttribute('selected', 'selected');
     });
 
-    // Injecter le contenu du commentaire
     const commentSrc   = document.getElementById('commentaire');
     const commentClone = clone.querySelector('#commentaire');
     if (commentClone) commentClone.innerHTML = commentSrc.innerHTML;
 
-    // Mettre à jour le titre de la page avec la commune et la rue
     const titleEl = clone.querySelector('title');
     if (titleEl) titleEl.textContent = `FD — ${commune} — ${rue}`;
 
-    // Supprimer la liste des fiches sauvegardées du clone (spécifique à cette instance)
     const fichesBar = clone.querySelector('.fiches-bar');
     if (fichesBar) fichesBar.remove();
 
-    // Déclencher le téléchargement
-    const blob = new Blob(['<!DOCTYPE html>\n' + clone.outerHTML], { type: 'text/html;charset=utf-8' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = nomFichier;
-    a.click();
-    URL.revokeObjectURL(url);
+    const htmlContent = '<!DOCTYPE html>\n' + clone.outerHTML;
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+
+    if (isAndroid() && navigator.share) {
+        // Android : partage natif
+        const file = new File([blob], nomFichier, { type: 'text/html' });
+        navigator.share({ files: [file], title: nomFichier })
+            .then(() => showToast('📤 Fichier HTML prêt à partager ou enregistrer !'))
+            .catch(() => fallbackDownload(blob, nomFichier));
+    } else {
+        // Desktop : téléchargement classique
+        fallbackDownload(blob, nomFichier);
+    }
 
     document.getElementById('pdf_file_name').textContent = nomFichier;
-    showToast(`💾 Fichier « ${nomFichier} » téléchargé.`);
+}
+
+/* ── HELPERS ── */
+function fallbackDownload(blob, fileName) {
+    const url = URL.createObjectURL(blob);
+    const a   = document.createElement('a');
+    a.href     = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`💾 Fichier « ${fileName} » téléchargé.`);
+}
+
+function b64toBlob(b64, mimeType) {
+    const byteChars = atob(b64);
+    const byteArr   = new Uint8Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
+    return new Blob([byteArr], { type: mimeType });
 }
 
 /* ── RESET ── */
