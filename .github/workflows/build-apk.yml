@@ -49,8 +49,8 @@ jobs:
       # 7. Copier index.html dans www/ (webDir attendu par Capacitor)
       - name: Préparer www/
         run: |
-          mkdir -p www
-          cp index.html www/index.html
+           # mkdir -p www
+           # cp index.html www/index.html
 
       # 8. Ajouter la plateforme Android
       - name: Cap add android
