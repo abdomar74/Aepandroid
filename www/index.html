@@ -848,8 +848,8 @@
                     <input type="text" id="instructeur" placeholder="Nom du responsable">
                 </div>
                 <div class="info-field">
-                    <label>Validé le</label>
-                    <input type="date" id="valide_le">
+                    <label>Etudié le</label>
+                    <input type="date" id="etude_le">
                 </div>
                 <div class="info-field" style="grid-column: span 2;">
                     <label>Décision finale le</label>
@@ -1658,262 +1658,399 @@ function calculateValues() {
 }
 
 /* ── EXPORT PDF ── */
-async function exportToPDF() {
-    const { jsPDF } = window.jspdf;
-    const commune = document.getElementById('commune').value.trim() || 'Commune';
-    const rue     = document.getElementById('rue').value.trim() || 'Rue';
-    const date    = new Date();
-    const mois    = date.toLocaleString('fr-FR', { month: 'long' });
-    const annee   = date.getFullYear();
-    const fileName = `FD_${rue}_${commune}_${mois}_${annee}.pdf`;
-    document.getElementById('pdf_file_name').textContent = fileName;
+<script>
+const PANELS = ['sig', 'cadastre', 'temps'];
 
-    // ── Constantes PDF A4
-    const pageW    = 210, pageH = 297, margin = 8, footerH = 10;
-    const contentW = pageW - 2 * margin;
-    const contentH = pageH - 2 * margin - footerH;
-
-    // ── 1. Collecter les images carto AVANT de toucher au DOM
-    //       On lit directement le src base64 → résolution native garantie
-    const cartoData = [];
-    const LABELS = { sig: 'SIG', cadastre: 'Cadastre', temps: 'Remonter le temps' };
-    PANELS.forEach(p => {
-        const img  = document.querySelector('#panel_' + p + ' .carto-preview');
-        const note = document.querySelector('#panel_' + p + ' .carto-note-input');
-        if (!img) return;
-        // Récupérer le format réel (jpeg ou png) depuis le data-URL
-        const src    = img.src;                          // data:image/jpeg;base64,…
-        const fmt    = src.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
-        const noteTxt = (note && note.textContent !== note.getAttribute('data-placeholder'))
-                        ? note.textContent.trim() : '';
-        cartoData.push({ label: LABELS[p], src, fmt, noteTxt });
-    });
-
-    // ── 2. Mémoriser l'état des panneaux, les fermer tous pour la capture principale
-    const panelStates = {};
-    PANELS.forEach(p => {
-        panelStates[p] = document.getElementById('panel_' + p).classList.contains('open');
-        document.getElementById('panel_' + p).classList.remove('open');
-    });
-
-    // ── 3. Masquer actions + footer
-    const actionsEl = document.querySelector('.actions');
-    const footerEl  = document.querySelector('.footer');
-    const prevA = actionsEl.style.display;
-    const prevF = footerEl.style.display;
-    actionsEl.style.display = 'none';
-    footerEl.style.display  = 'none';
-
-    await new Promise(r => setTimeout(r, 80));
-
-    try {
-        // ── 4. Capture de la fiche principale à scale:3 (haute résolution)
-        const canvas = await html2canvas(document.querySelector('.page'), {
-            scale: 3,
-            useCORS: true,
-            backgroundColor: '#f8faf9'
-        });
-
-        const pdf = new jsPDF('p', 'mm', 'a4');
-
-        // Découper et insérer la fiche page par page
-        let y = 0, pageNum = 1;
-        while (y < canvas.height) {
-            if (pageNum > 1) pdf.addPage();
-            const slice = document.createElement('canvas');
-            const ctx   = slice.getContext('2d');
-            slice.width  = canvas.width;
-            slice.height = Math.min(canvas.height - y, Math.round(contentH * canvas.width / contentW));
-            ctx.drawImage(canvas, 0, y, canvas.width, slice.height, 0, 0, slice.width, slice.height);
-            pdf.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin,
-                         contentW, slice.height * contentW / slice.width);
-            _addFooter(pdf, pageNum, fileName, pageW, pageH);
-            y += slice.height;
-            pageNum++;
-        }
-
-        // ── 5. Pages annexes : une page par image carto, pleine résolution
-        cartoData.forEach(({ label, src, fmt, noteTxt }) => {
-            pdf.addPage();
-            pageNum++;
-
-            // En-tête de l'annexe
-            pdf.setFillColor(30, 58, 95);           // bleu marine par défaut
-            if (label.includes('Cadastre')) pdf.setFillColor(124, 58, 237);   // violet
-            if (label.includes('temps'))    pdf.setFillColor(180, 83, 9);     // ambre
-            pdf.roundedRect(margin, margin, contentW, 10, 2, 2, 'F');
-            pdf.setTextColor(255, 255, 255);
-            pdf.setFontSize(11);
-            pdf.setFont(undefined, 'bold');
-            pdf.text(label, margin + 4, margin + 6.8);
-            pdf.setTextColor(0, 0, 0);
-            pdf.setFont(undefined, 'normal');
-
-            // Calculer les dimensions de l'image pour qu'elle tienne dans la page
-            // en conservant le ratio, avec une marge haute pour l'en-tête
-            const imgTopY   = margin + 13;
-            const noteH     = noteTxt ? 18 : 0;
-            const maxImgH   = contentH - 13 - noteH - 2;   // 2 mm de séparation
-
-            // Charger l'image dans un élément temporaire pour connaître ses dimensions
-            const tmpImg = new Image();
-            tmpImg.src = src;
-            // Les dimensions sont déjà chargées (l'image est dans le DOM)
-            const nw = tmpImg.naturalWidth  || 800;
-            const nh = tmpImg.naturalHeight || 600;
-            const ratio  = nw / nh;
-            let imgW = contentW;
-            let imgH = imgW / ratio;
-            if (imgH > maxImgH) { imgH = maxImgH; imgW = imgH * ratio; }
-            const imgX = margin + (contentW - imgW) / 2;   // centré horizontalement
-
-            pdf.addImage(src, fmt, imgX, imgTopY, imgW, imgH);
-
-            // Note sous l'image
-            if (noteTxt) {
-                const noteY = imgTopY + imgH + 4;
-                pdf.setFontSize(8.5);
-                pdf.setTextColor(80, 80, 80);
-                pdf.setFont(undefined, 'italic');
-                const lines = pdf.splitTextToSize(noteTxt, contentW);
-                pdf.text(lines, margin, noteY);
-                pdf.setFont(undefined, 'normal');
-                pdf.setTextColor(0, 0, 0);
-            }
-
-            _addFooter(pdf, pageNum, fileName, pageW, pageH);
-        });
-
-        // ── Sauvegarde compatible Android + Desktop
-        await savePdfAndroid(pdf, fileName);
-
-    } finally {
-        // ── 6. Restaurer le DOM
-        PANELS.forEach(p => {
-            const panel = document.getElementById('panel_' + p);
-            if (panelStates[p]) panel.classList.add('open');
-            else                 panel.classList.remove('open');
-        });
-        actionsEl.style.display = prevA;
-        footerEl.style.display  = prevF;
-    }
-}
-
-function _addFooter(pdf, pageNum, fileName, pageW, pageH) {
-    pdf.setFontSize(8.5);
-    pdf.setTextColor(120, 120, 120);
-    const txt = `Page ${pageNum} | ${fileName}`;
-    pdf.text(txt, (pageW - pdf.getTextWidth(txt)) / 2, pageH - 4);
-    pdf.setTextColor(0, 0, 0);
-}
-
-/* ── DÉTECTION ANDROID ── */
+/* ---------------------------
+   Détection Android / Capacitor
+---------------------------- */
 function isAndroid() {
-    return typeof window.Capacitor !== 'undefined' && window.Capacitor.isNativePlatform();
+  return typeof window.Capacitor !== 'undefined'
+    && window.Capacitor.isNativePlatform();
 }
 
-/* ── SAUVEGARDE PDF COMPATIBLE ANDROID + DESKTOP ── */
-async function savePdfAndroid(pdf, fileName) {
-    if (isAndroid()) {
-        // Sur Android : convertir en base64 et ouvrir via le partage natif
-        const pdfBase64 = pdf.output('datauristring'); // data:application/pdf;base64,...
-        const base64    = pdfBase64.split(',')[1];
+/* ---------------------------
+   Écriture native + partage
+   (Android Capacitor)
+---------------------------- */
+async function writeAndShareNative(base64Data, fileName) {
+  if (!window.Capacitor?.Plugins?.Filesystem || !window.Capacitor?.Plugins?.Share) {
+    throw new Error('Plugins Capacitor Filesystem/Share indisponibles');
+  }
 
-        // Utiliser l'API de partage Web (disponible dans Capacitor)
-        if (navigator.share) {
-            // Créer un fichier Blob et le partager
-            const blob = b64toBlob(base64, 'application/pdf');
-            const file = new File([blob], fileName, { type: 'application/pdf' });
-            try {
-                await navigator.share({ files: [file], title: fileName });
-                showToast('📤 PDF prêt à partager ou enregistrer !');
-                return;
-            } catch(e) {
-                // L'utilisateur a annulé ou partage non dispo → fallback
-            }
-        }
-        // Fallback Android : ouvrir le PDF dans le navigateur intégré
-        const blob = b64toBlob(base64, 'application/pdf');
-        const url  = URL.createObjectURL(blob);
-        window.open(url, '_blank');
-        showToast('📄 PDF ouvert — utilise le bouton ⬇ pour l\'enregistrer');
-    } else {
-        // Desktop : comportement normal
-        pdf.save(fileName);
-    }
+  const { Filesystem, Directory, Share } = window.Capacitor.Plugins;
+
+  // 1) écrire réellement le fichier dans le cache de l’application
+  await Filesystem.writeFile({
+    path: fileName,
+    data: base64Data,
+    directory: Directory.Cache,
+    recursive: true,
+  });
+
+  // 2) récupérer une URI système exploitable par Android
+  const uriResult = await Filesystem.getUri({
+    path: fileName,
+    directory: Directory.Cache,
+  });
+
+  // 3) ouvrir la feuille de partage Android
+  await Share.share({
+    title: fileName,
+    url: uriResult.uri,
+    dialogTitle: 'Enregistrer ou envoyer le fichier',
+  });
+
+  return uriResult.uri;
 }
 
-/* ── SAUVEGARDE HTML COMPATIBLE ANDROID + DESKTOP ── */
-function saveAsHTML() {
-    const commune = document.getElementById('commune').value.trim() || 'Commune';
-    const rue     = document.getElementById('rue').value.trim() || 'Rue';
-    const date    = new Date();
-    const mois    = date.toLocaleString('fr-FR', { month: 'long' });
-    const annee   = date.getFullYear();
-    const nomFichier = `FD_${rue.replace(/\s+/g, '_')}_${commune.replace(/\s+/g, '_')}_${mois}_${annee}.html`;
-
-    // Cloner le document entier
-    const clone = document.documentElement.cloneNode(true);
-
-    document.querySelectorAll('input[type="text"], input[type="date"]').forEach(input => {
-        if (!input.id) return;
-        const cloneEl = clone.querySelector('#' + input.id);
-        if (cloneEl) cloneEl.setAttribute('value', input.value);
-    });
-
-    document.querySelectorAll('select').forEach(sel => {
-        if (!sel.id || sel.id === 'fiches_select') return;
-        const cloneEl = clone.querySelector('#' + sel.id);
-        if (!cloneEl) return;
-        Array.from(cloneEl.options).forEach(opt => opt.removeAttribute('selected'));
-        const selectedOpt = cloneEl.querySelector(`option[value="${sel.value}"]`);
-        if (selectedOpt) selectedOpt.setAttribute('selected', 'selected');
-    });
-
-    const commentSrc   = document.getElementById('commentaire');
-    const commentClone = clone.querySelector('#commentaire');
-    if (commentClone) commentClone.innerHTML = commentSrc.innerHTML;
-
-    const titleEl = clone.querySelector('title');
-    if (titleEl) titleEl.textContent = `FD — ${commune} — ${rue}`;
-
-    const fichesBar = clone.querySelector('.fiches-bar');
-    if (fichesBar) fichesBar.remove();
-
-    const htmlContent = '<!DOCTYPE html>\n' + clone.outerHTML;
-    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-
-    if (isAndroid() && navigator.share) {
-        // Android : partage natif
-        const file = new File([blob], nomFichier, { type: 'text/html' });
-        navigator.share({ files: [file], title: nomFichier })
-            .then(() => showToast('📤 Fichier HTML prêt à partager ou enregistrer !'))
-            .catch(() => fallbackDownload(blob, nomFichier));
-    } else {
-        // Desktop : téléchargement classique
-        fallbackDownload(blob, nomFichier);
-    }
-
-    document.getElementById('pdf_file_name').textContent = nomFichier;
+/* ---------------------------
+   Encodage texte -> base64
+   utile pour le HTML
+---------------------------- */
+function utf8ToBase64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
 }
 
-/* ── HELPERS ── */
+/* ---------------------------
+   Téléchargement web classique
+   utilisé hors Android
+---------------------------- */
 function fallbackDownload(blob, fileName) {
-    const url = URL.createObjectURL(blob);
-    const a   = document.createElement('a');
-    a.href     = url;
-    a.download = fileName;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast(`💾 Fichier « ${fileName} » téléchargé.`);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function b64toBlob(b64, mimeType) {
-    const byteChars = atob(b64);
-    const byteArr   = new Uint8Array(byteChars.length);
-    for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
-    return new Blob([byteArr], { type: mimeType });
+/* ---------------------------
+   Pied de page PDF
+---------------------------- */
+function addFooter(pdf, pageNum, fileName, pageW, pageH) {
+  pdf.setFontSize(8.5);
+  pdf.setTextColor(120, 120, 120);
+
+  const txt = `Page ${pageNum} - ${fileName}`;
+  pdf.text(txt, pageW - pdf.getTextWidth(txt) - 2, pageH - 4);
+
+  pdf.setTextColor(0, 0, 0);
 }
+
+/* ---------------------------
+   Notification utilisateur
+---------------------------- */
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toastmsg');
+  if (!t) return;
+
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+
+  setTimeout(() => {
+    t.className = 'toast';
+  }, 2800);
+}
+
+/* ---------------------------
+   Sauvegarde PDF sur Android
+---------------------------- */
+async function savePdfAndroid(pdf, fileName) {
+  if (isAndroid()) {
+    try {
+      const base64 = pdf.output('datauristring').split(',')[1];
+      await writeAndShareNative(base64, fileName);
+      showToast('PDF généré. Choisissez où l’enregistrer.');
+    } catch (err) {
+      console.error('Erreur export PDF Android', err);
+      showToast('Erreur export PDF: ' + (err.message || err), true);
+    }
+  } else {
+    pdf.save(fileName);
+  }
+}
+
+/* ---------------------------
+   Sauvegarde HTML sur Android
+---------------------------- */
+async function saveAsHTML() {
+  const commune = document.getElementById('commune').value.trim() || 'Commune';
+  const rue = document.getElementById('rue').value.trim() || 'Rue';
+
+  const date = new Date();
+  const mois = date.toLocaleString('fr-FR', { month: 'long' });
+  const annee = date.getFullYear();
+
+  const nomFichier = `FD_${rue.replace(/s+/g, '_')}_${commune.replace(/s+/g, '_')}_${mois}_${annee}.html`;
+
+  // Cloner la page pour produire un HTML exportable
+  const clone = document.documentElement.cloneNode(true);
+
+  // Reprendre les valeurs des champs texte et date
+  document
+    .querySelectorAll('input[type="text"], input[type="date"]')
+    .forEach(input => {
+      if (!input.id) return;
+
+      const cloneEl = clone.querySelector(`#${input.id}`);
+      if (cloneEl) {
+        cloneEl.setAttribute('value', input.value);
+      }
+    });
+
+  // Reprendre les sélections des listes déroulantes
+  document
+    .querySelectorAll('select')
+    .forEach(sel => {
+      if (!sel.id || sel.id === 'fichesselect') return;
+
+      const cloneEl = clone.querySelector(`#${sel.id}`);
+      if (!cloneEl) return;
+
+      Array.from(cloneEl.options).forEach(opt => opt.removeAttribute('selected'));
+
+      const selectedOpt = cloneEl.querySelector(`option[value="${sel.value}"]`);
+      if (selectedOpt) {
+        selectedOpt.setAttribute('selected', 'selected');
+      }
+    });
+
+  // Reprendre le contenu commentaire
+  const commentSrc = document.getElementById('commentaire');
+  const commentClone = clone.querySelector('#commentaire');
+  if (commentClone && commentSrc) {
+    commentClone.innerHTML = commentSrc.innerHTML;
+  }
+
+  // Adapter le titre du document exporté
+  const titleEl = clone.querySelector('title');
+  if (titleEl) {
+    titleEl.textContent = `FD ${commune} ${rue}`;
+  }
+
+  // Retirer la barre des fiches pour un export propre
+  const fichesBar = clone.querySelector('.fiches-bar');
+  if (fichesBar) {
+    fichesBar.remove();
+  }
+
+  const htmlContent = '<!DOCTYPE html>' + clone.outerHTML;
+
+  if (isAndroid()) {
+    try {
+      const base64 = utf8ToBase64(htmlContent);
+      await writeAndShareNative(base64, nomFichier);
+      showToast('HTML généré. Choisissez où l’enregistrer.');
+    } catch (err) {
+      console.error('Erreur export HTML Android', err);
+      showToast('Erreur export HTML: ' + (err.message || err), true);
+    }
+  } else {
+    fallbackDownload(
+      new Blob([htmlContent], { type: 'text/html;charset=utf-8' }),
+      nomFichier
+    );
+  }
+
+  document.getElementById('pdffilename').textContent = nomFichier;
+}
+
+/* ---------------------------
+   Export PDF complet
+---------------------------- */
+async function exportToPDF() {
+  const jsPDF = window.jspdf.jsPDF;
+
+  const commune = document.getElementById('commune').value.trim() || 'Commune';
+  const rue = document.getElementById('rue').value.trim() || 'Rue';
+
+  const date = new Date();
+  const mois = date.toLocaleString('fr-FR', { month: 'long' });
+  const annee = date.getFullYear();
+
+  const fileName = `FD_${rue.replace(/s+/g, '_')}_${commune.replace(/s+/g, '_')}_${mois}_${annee}.pdf`;
+  document.getElementById('pdffilename').textContent = fileName;
+
+  const pageW = 210;
+  const pageH = 297;
+  const margin = 8;
+  const footerH = 10;
+
+  const contentW = pageW - 2 * margin;
+  const contentH = pageH - 2 * margin - footerH;
+
+  // Récupérer les panneaux cartographiques avant modification du DOM
+  const cartoData = [];
+  const LABELS = { sig: 'SIG', cadastre: 'Cadastre', temps: 'Remonter le temps' };
+
+  PANELS.forEach(p => {
+    const img = document.querySelector(`#panel${p} .carto-preview`);
+    const note = document.querySelector(`#panel${p} .carto-note-input`);
+    if (!img) return;
+
+    const src = img.src;
+    const fmt = src.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
+
+    const noteTxt =
+      note && note.textContent && !note.getAttribute('data-placeholder')
+        ? note.textContent.trim()
+        : '';
+
+    cartoData.push({ label: LABELS[p], src, fmt, noteTxt });
+  });
+
+  // Mémoriser l'état des panneaux et les fermer pour la capture principale
+  const panelStates = {};
+  PANELS.forEach(p => {
+    const panel = document.getElementById(`panel${p}`);
+    panelStates[p] = panel.classList.contains('open');
+    panel.classList.remove('open');
+  });
+
+  // Masquer les boutons et le footer pendant la capture
+  const actionsEl = document.querySelector('.actions');
+  const footerEl = document.querySelector('.footer');
+
+  const prevA = actionsEl.style.display;
+  const prevF = footerEl.style.display;
+
+  actionsEl.style.display = 'none';
+  footerEl.style.display = 'none';
+
+  await new Promise(r => setTimeout(r, 80));
+
+  try {
+    // Capture haute résolution de la page principale
+    const canvas = await html2canvas(document.querySelector('.page'), {
+      scale: 3,
+      useCORS: true,
+      backgroundColor: '#f8faf9',
+    });
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+
+    // Découper l'image principale page par page
+    let y = 0;
+    let pageNum = 1;
+
+    while (y < canvas.height) {
+      if (pageNum > 1) {
+        pdf.addPage();
+      }
+
+      const slice = document.createElement('canvas');
+      const ctx = slice.getContext('2d');
+
+      slice.width = canvas.width;
+      slice.height = Math.min(
+        canvas.height - y,
+        Math.round((contentH * canvas.width) / contentW)
+      );
+
+      ctx.drawImage(
+        canvas,
+        0,
+        y,
+        canvas.width,
+        slice.height,
+        0,
+        0,
+        slice.width,
+        slice.height
+      );
+
+      pdf.addImage(
+        slice.toDataURL('image/jpeg', 0.92),
+        'JPEG',
+        margin,
+        margin,
+        contentW,
+        (slice.height * contentW) / slice.width
+      );
+
+      addFooter(pdf, pageNum, fileName, pageW, pageH);
+
+      y += slice.height;
+      pageNum++;
+    }
+
+    // Ajouter une page annexe par image cartographique
+    for (const { label, src, fmt, noteTxt } of cartoData) {
+      pdf.addPage();
+      pageNum++;
+
+      pdf.setFillColor(
+        label === 'Cadastre' ? 124 : label === 'Remonter le temps' ? 180 : 30,
+        label === 'Cadastre' ? 58 : label === 'Remonter le temps' ? 83 : 58,
+        label === 'Cadastre' ? 237 : label === 'Remonter le temps' ? 9 : 95
+      );
+
+      pdf.roundedRect(margin, margin, contentW, 10, 2, 2, 'F');
+
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(11);
+      pdf.setFont(undefined, 'bold');
+      pdf.text(label, margin + 4, margin + 6.8);
+
+      // Calcul des dimensions image
+      const imgTopY = margin + 13;
+      const noteH = noteTxt ? 18 : 0;
+      const maxImgH = contentH - 13 - noteH - 2;
+
+      const tmpImg = new Image();
+      tmpImg.src = src;
+
+      const nw = tmpImg.naturalWidth || 800;
+      const nh = tmpImg.naturalHeight || 600;
+      const ratio = nw / nh;
+
+      let imgW = contentW;
+      let imgH = imgW / ratio;
+
+      if (imgH > maxImgH) {
+        imgH = maxImgH;
+        imgW = imgH * ratio;
+      }
+
+      const imgX = margin + (contentW - imgW) / 2;
+      pdf.addImage(src, fmt, imgX, imgTopY, imgW, imgH);
+
+      // Note textuelle sous l’image
+      if (noteTxt) {
+        const noteY = imgTopY + imgH + 4;
+
+        pdf.setFontSize(8.5);
+        pdf.setTextColor(80, 80, 80);
+        pdf.setFont(undefined, 'italic');
+
+        const lines = pdf.splitTextToSize(noteTxt, contentW);
+        pdf.text(lines, margin, noteY);
+
+        pdf.setFont(undefined, 'normal');
+      }
+
+      addFooter(pdf, pageNum, fileName, pageW, pageH);
+    }
+
+    // Sauvegarde Android ou desktop
+    await savePdfAndroid(pdf, fileName);
+  } finally {
+    // Restaurer le DOM et l’interface
+    PANELS.forEach(p => {
+      const panel = document.getElementById(`panel${p}`);
+      if (panelStates[p]) {
+        panel.classList.add('open');
+      } else {
+        panel.classList.remove('open');
+      }
+    });
+
+    actionsEl.style.display = prevA;
+    footerEl.style.display = prevF;
+  }
+}
+</script>
 
 /* ── RESET ── */
 function resetForm() {
