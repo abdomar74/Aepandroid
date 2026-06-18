@@ -8,7 +8,8 @@
   "android": {
     "allowMixedContent": true,
     "backgroundColor":   "#f8faf9",
-    "minWebViewVersion": 80
+    "minWebViewVersion": 80,
+    "webContentsDebuggingEnabled": false
   },
   "plugins": {
     "SplashScreen": {
@@ -16,6 +17,10 @@
       "backgroundColor":    "#1b4332",
       "androidSplashResourceName": "splash",
       "showSpinner": false
-    }
+    },
+    "Filesystem": {
+      "iosDriveEnabled": false
+    },
+    "Share": {}
   }
 }
