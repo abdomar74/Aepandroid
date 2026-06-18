@@ -1809,27 +1809,43 @@ function _addFooter(pdf, pageNum, fileName, pageW, pageH) {
 
 /* ── DÉTECTION ANDROID ── */
 function isAndroid() {
-    return typeof window.Capacitor !== 'undefined' && window.Capacitor.isNativePlatform();
+    // Détection Capacitor natif (prioritaire)
+    if (typeof window.Capacitor !== 'undefined' && window.Capacitor.isNativePlatform()) return true;
+    // Détection Android WebView classique (sans Capacitor ou Capacitor non encore chargé)
+    return /android/i.test(navigator.userAgent);
+}
+
+/* ── DÉTECTION CAPACITOR DISPONIBLE ── */
+function hasCapacitor() {
+    return typeof window.Capacitor !== 'undefined'
+        && window.Capacitor.isNativePlatform()
+        && window.Capacitor.Plugins
+        && window.Capacitor.Plugins.Filesystem
+        && window.Capacitor.Plugins.Share;
 }
 
 /* ── ÉCRITURE + PARTAGE NATIF VIA PLUGINS CAPACITOR ── */
 async function writeAndShareNative(base64Data, fileName, mimeType) {
-    // Accès aux plugins Capacitor (chargés via capacitor.js après cap sync)
-    const { Filesystem, Directory } = window.Capacitor.Plugins;
-    const { Share } = window.Capacitor.Plugins;
+    if (!hasCapacitor()) {
+        throw new Error('Plugins Capacitor non disponibles (Filesystem / Share).');
+    }
+    const { Filesystem, Share } = window.Capacitor.Plugins;
+    const { Directory } = window.Capacitor.Plugins.Filesystem
+        ? window.Capacitor.Plugins
+        : await import('@capacitor/filesystem').catch(() => ({ Directory: { Cache: 'CACHE' } }));
 
     // 1. Écrire le fichier dans le dossier Cache (toujours accessible à l'appli)
     const writeResult = await Filesystem.writeFile({
         path: fileName,
         data: base64Data,          // base64 SANS le préfixe data:...;base64,
-        directory: Directory.Cache,
+        directory: 'CACHE',        // valeur string universelle, évite l'import Directory
         recursive: true,
     });
 
     // 2. Récupérer une URI utilisable par le système (content://...)
     const uriResult = await Filesystem.getUri({
         path: fileName,
-        directory: Directory.Cache,
+        directory: 'CACHE',
     });
 
     // 3. Ouvrir la feuille de partage native Android avec ce fichier
@@ -1845,11 +1861,34 @@ async function writeAndShareNative(base64Data, fileName, mimeType) {
 /* ── SAUVEGARDE PDF COMPATIBLE ANDROID + DESKTOP ── */
 async function savePdfAndroid(pdf, fileName) {
     if (isAndroid()) {
+        if (hasCapacitor()) {
+            // Chemin Capacitor natif : écriture + partage
+            try {
+                const base64 = pdf.output('datauristring').split(',')[1];
+                await writeAndShareNative(base64, fileName, 'application/pdf');
+                showToast('📄 PDF généré — choisis où l\'enregistrer.');
+                return;
+            } catch (err) {
+                console.warn('Capacitor PDF failed, trying fallback:', err);
+            }
+        }
+        // Fallback Android WebView : ouvrir le data URI dans un nouvel onglet
+        // (permet au navigateur intégré ou Chrome de proposer l'enregistrement)
         try {
-            // jsPDF → base64 brut (sans préfixe data:)
-            const base64 = pdf.output('datauristring').split(',')[1];
-            await writeAndShareNative(base64, fileName, 'application/pdf');
-            showToast('📄 PDF généré — choisis où l\'enregistrer.');
+            const dataUri = pdf.output('datauristring');
+            const w = window.open('', '_blank');
+            if (w) {
+                w.document.write(
+                    `<html><body style="margin:0">` +
+                    `<iframe src="${dataUri}" style="width:100%;height:100vh;border:none"></iframe>` +
+                    `</body></html>`
+                );
+                showToast('📄 PDF prêt — appuyez longuement pour enregistrer.');
+            } else {
+                // window.open bloqué : téléchargement via lien
+                const blob = pdf.output('blob');
+                fallbackDownload(blob, fileName);
+            }
         } catch (err) {
             console.error('Erreur export PDF Android :', err);
             showToast('⚠️ Erreur export PDF : ' + (err.message || err), true);
@@ -1900,11 +1939,20 @@ async function saveAsHTML() {
     const htmlContent = '<!DOCTYPE html>\n' + clone.outerHTML;
 
     if (isAndroid()) {
+        if (hasCapacitor()) {
+            try {
+                const base64 = utf8ToBase64(htmlContent);
+                await writeAndShareNative(base64, nomFichier, 'text/html');
+                showToast('💾 HTML généré — choisis où l\'enregistrer.');
+                return;
+            } catch (err) {
+                console.warn('Capacitor HTML failed, trying fallback:', err);
+            }
+        }
+        // Fallback Android WebView : blob + lien de téléchargement
         try {
-            // Encoder le HTML en base64 pour l'écriture fichier
-            const base64 = utf8ToBase64(htmlContent);
-            await writeAndShareNative(base64, nomFichier, 'text/html');
-            showToast('💾 HTML généré — choisis où l\'enregistrer.');
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            fallbackDownload(blob, nomFichier);
         } catch (err) {
             console.error('Erreur export HTML Android :', err);
             showToast('⚠️ Erreur export HTML : ' + (err.message || err), true);
@@ -1930,8 +1978,19 @@ function fallbackDownload(blob, fileName) {
 }
 
 function utf8ToBase64(str) {
-    // Encode correctement les accents français en base64
-    return btoa(unescape(encodeURIComponent(str)));
+    // Encode correctement les accents français en base64 (TextEncoder, modern & fiable)
+    try {
+        const bytes = new TextEncoder().encode(str);
+        let binary = '';
+        const chunkSize = 8192;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+            binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+        }
+        return btoa(binary);
+    } catch (e) {
+        // Fallback legacy (navigateurs très anciens)
+        return btoa(unescape(encodeURIComponent(str)));
+    }
 }
 
 /* ── RESET ── */
